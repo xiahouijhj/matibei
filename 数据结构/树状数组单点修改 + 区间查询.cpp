@@ -3,42 +3,38 @@
 
 using namespace std;
 
-class BIT_RangeUpdate_PointQuery {
+class BIT_PointUpdate {
     vector<int> tree;
     int n;
     int lowbit(int x) { return x & -x; }
 
-    void add(int i, int val) {
+public:
+    BIT_PointUpdate(int size) : n(size), tree(size + 1, 0) {}
+
+    void update(int i, int val) {
         for (; i <= n; i += lowbit(i)) tree[i] += val;
     }
 
-public:
-    BIT_RangeUpdate_PointQuery(int size) : n(size), tree(size + 1, 0) {}
-
-    // 区间修改：[l, r] 增加 val
-    void updateRange(int l, int r, int val) {
-        add(l, val);
-        add(r + 1, -val);
+    int query(int i) {
+        int sum = 0;
+        for (; i > 0; i -= lowbit(i)) sum += tree[i];
+        return sum;
     }
 
-    // 单点查询
-    int queryPoint(int i) {
-        int res = 0;
-        for (; i > 0; i -= lowbit(i)) res += tree[i];
-        return res;
+    int queryRange(int l, int r) {
+        return query(r) - query(l - 1);
     }
 };
 
 int main() {
-    cout << "\n--- Testing: Range Update, Point Query ---" << endl;
-    BIT_RangeUpdate_PointQuery bit(5);
-    // 初始 [0, 0, 0, 0, 0]
-    bit.updateRange(2, 4, 5); // [0, 5, 5, 5, 0]
-    cout << "Point 1: " << bit.queryPoint(1) << " (Expected: 0)" << endl;
-    cout << "Point 3: " << bit.queryPoint(3) << " (Expected: 5)" << endl;
+    cout << "--- Testing: Point Update, Range Query ---" << endl;
+    BIT_PointUpdate bit(5);
+    bit.update(1, 1);
+    bit.update(2, 2);
+    bit.update(3, 3); // 数组变为 [1, 2, 3, 0, 0]
     
-    bit.updateRange(3, 5, 2); // [0, 5, 7, 7, 2]
-    cout << "Point 3 after update: " << bit.queryPoint(3) << " (Expected: 7)" << endl;
-    cout << "Point 5 after update: " << bit.queryPoint(5) << " (Expected: 2)" << endl;
+    cout << "Sum [1, 3]: " << bit.queryRange(1, 3) << " (Expected: 6)" << endl;
+    bit.update(2, 10); // 2号位置加10，数组变为 [1, 12, 3, 0, 0]
+    cout << "Sum [1, 3] after update: " << bit.queryRange(1, 3) << " (Expected: 16)" << endl;
     return 0;
 }
